@@ -8,7 +8,18 @@ Python SDK for vox8 real-time speech translation.
 pip install vox8
 ```
 
-## Usage
+## Authentication
+
+The SDK supports two authentication methods:
+
+| Method | Use case | Security |
+|--------|----------|----------|
+| `api_key` | Server-side Python apps | Recommended for Python |
+| `session_token` | Pre-generated token | Alternative auth method |
+
+Since Python typically runs server-side, using `api_key` directly is secure.
+
+## Basic usage
 
 ```python
 from vox8 import Vox8Client
@@ -80,22 +91,38 @@ async def main():
 asyncio.run(main())
 ```
 
+## Using session tokens
+
+If you have a pre-generated session token (e.g., from a web backend):
+
+```python
+from vox8 import Vox8Client
+
+client = Vox8Client(
+    session_token="your_session_token",  # Alternative to api_key
+    target_language="es",
+)
+```
+
 ## API
 
 ### Vox8Client
 
 ```python
 client = Vox8Client(
-    api_key: str,              # Your vox8 API key
-    target_language: str,      # Target language code (e.g., 'es', 'fr')
-    source_language: str = "auto",  # Source language or 'auto'
-    voice_mode: str = "match", # 'match', 'male', or 'female'
+    target_language: str,                # Target language code (e.g., 'es', 'fr')
+    api_key: str | None = None,          # Your vox8 API key
+    session_token: str | None = None,    # Alternative: session token
+    source_language: str = "auto",       # Source language or 'auto'
+    voice_mode: str = "match",           # 'match', 'male', or 'female'
     ws_url: str = "wss://api.vox8.io/v1/translate",
     on_transcript: Callable | None = None,
     on_audio: Callable | None = None,
     on_error: Callable | None = None,
 )
 ```
+
+Either `api_key` or `session_token` must be provided.
 
 ### Methods
 
