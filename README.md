@@ -1,6 +1,6 @@
 # vox8
 
-Python SDK for vox8 real-time speech translation.
+Python SDK for Vox8 real-time speech translation.
 
 ## Installation
 
@@ -111,7 +111,7 @@ client = Vox8Client(
 ```python
 client = Vox8Client(
     target_language: str,                # Target language code (e.g., 'es', 'fr')
-    api_key: str | None = None,          # Your vox8 API key
+    api_key: str | None = None,          # Your Vox8 API key
     session_token: str | None = None,    # Alternative: session token
     source_language: str = "auto",       # Source language or 'auto'
     voice_mode: str = "match",           # 'match', 'male', or 'female'
@@ -126,7 +126,7 @@ Either `api_key` or `session_token` must be provided.
 
 ### Methods
 
-- `await client.connect()` - Connect to vox8
+- `await client.connect()` - Connect to Vox8
 - `await client.listen()` - Listen for events (run as background task)
 - `await client.send_audio(base64_audio)` - Send audio data
 - `await client.send_keepalive()` - Prevent session timeout
