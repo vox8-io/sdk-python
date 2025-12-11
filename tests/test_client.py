@@ -119,3 +119,25 @@ async def test_custom_config(fake_ws):
     assert msg["target_language"] == "fr"
     assert msg["source_language"] == "en"
     assert msg["voice_mode"] == "female"
+
+
+def test_requires_auth():
+    """Test that either api_key or session_token is required."""
+    with pytest.raises(ValueError, match="Either api_key or session_token"):
+        Vox8Client(target_language="es")
+
+
+@pytest.mark.asyncio
+async def test_session_token_auth(fake_ws):
+    """Test authentication with session_token instead of api_key."""
+    client = Vox8Client(
+        session_token="test-session-token",
+        target_language="es",
+    )
+    await client.connect()
+
+    msg = fake_ws.sent[0]
+    assert msg["type"] == "session_start"
+    assert msg["session_token"] == "test-session-token"
+    assert "api_key" not in msg
+    assert msg["target_language"] == "es"

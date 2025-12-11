@@ -18,6 +18,11 @@ class Vox8Client:
     """
     Client for connecting to vox8 real-time speech translation API.
 
+    Authentication:
+        Use ONE of:
+        - api_key: For server-side usage (recommended for Python)
+        - session_token: For when you have a pre-generated session token
+
     Example:
         >>> from vox8 import Vox8Client
         >>> import asyncio
@@ -41,9 +46,10 @@ class Vox8Client:
 
     def __init__(
         self,
-        api_key: str,
         target_language: str,
         *,
+        api_key: str | None = None,
+        session_token: str | None = None,
         source_language: str = "auto",
         voice_mode: VoiceMode = "match",
         ws_url: str = "wss://api.vox8.io/v1/translate",
@@ -55,16 +61,24 @@ class Vox8Client:
         Initialize the vox8 client.
 
         Args:
-            api_key: Your vox8 API key
             target_language: Target language code (e.g., 'es', 'fr', 'de')
+            api_key: Your vox8 API key (for server-side usage)
+            session_token: Session token (alternative to api_key)
             source_language: Source language code or 'auto' for detection
             voice_mode: Voice mode - 'match' preserves speaker voice
             ws_url: WebSocket URL (default: wss://api.vox8.io/v1/translate)
             on_transcript: Callback for transcript events
             on_audio: Callback for audio events
             on_error: Callback for error events
+
+        Raises:
+            ValueError: If neither api_key nor session_token is provided
         """
+        if not api_key and not session_token:
+            raise ValueError("Either api_key or session_token must be provided")
+
         self.api_key = api_key
+        self.session_token = session_token
         self.target_language = target_language
         self.source_language = source_language
         self.voice_mode = voice_mode
@@ -97,18 +111,23 @@ class Vox8Client:
             raise RuntimeError("Already connected")
 
         self._ws = await websockets.connect(self.ws_url)
-        await self._ws.send(
-            json.dumps(
-                {
-                    "type": "session_start",
-                    "api_key": self.api_key,
-                    "target_language": self.target_language,
-                    "source_language": self.source_language,
-                    "voice_mode": self.voice_mode,
-                    "audio_format": "pcm_s16le",
-                }
-            )
-        )
+
+        # Build session_start message with appropriate auth
+        session_start: dict[str, Any] = {
+            "type": "session_start",
+            "target_language": self.target_language,
+            "source_language": self.source_language,
+            "voice_mode": self.voice_mode,
+            "audio_format": "pcm_s16le",
+        }
+
+        # Use session token or API key
+        if self.session_token:
+            session_start["session_token"] = self.session_token
+        elif self.api_key:
+            session_start["api_key"] = self.api_key
+
+        await self._ws.send(json.dumps(session_start))
 
     async def listen(self) -> None:
         """
